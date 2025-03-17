@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Version=1.5
+Name=@{{name}}
+Comment=@{{comment}}
+Icon=@{{icon_path}}
+Exec=@{{exec_path}} %u
+StartupWMClass=Eclipse
+Encoding=UTF-8
+StartupNotify=true
+Terminal=false
+MimeType=x-scheme-handler/eclipse;
+Categories=Development;
