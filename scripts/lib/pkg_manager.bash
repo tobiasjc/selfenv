@@ -31,8 +31,8 @@ declare -A ___PKG_MANAGER_TO_INSTALL_CMD=(
 	["dnf"]=" install --assumeyes"
 	["apk"]=" add --no-interactive "
 	["xbps"]="-install --yes"
-	["pacman"]=" --sync --noconfirm "
-	["aura"]=" --sync --noconfirm "
+	["pacman"]=" --needed --sync --noconfirm "
+	["aura"]=" --aursync --noconfirm "
 )
 declare ___PKG_MANAGER_INSTALL_CMDS=""
 
@@ -51,8 +51,8 @@ declare -A ___PKG_MANAGER_TO_UPDATE_CMD=(
 	["dnf"]=" update --assumeyes"
 	["apk"]=" update --no-interactive"
 	["xbps"]="-install --sync --update --yes"
-	["pacman"]=" --sync --noconfirm"
-	["aura"]=" --sync --noconfirm"
+	["pacman"]=" --sync --refresh --sysupgrade --noconfirm"
+	["aura"]=" --aursync --sysupgrade --noconfirm"
 )
 declare ___PKG_MANAGER_UPDATE_CMDS=""
 

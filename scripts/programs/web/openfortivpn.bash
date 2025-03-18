@@ -26,18 +26,18 @@ function script_program_install() {
 	(cd "$GIT_CLONE_DIR" &&
 		./autogen.sh &&
 		./configure --prefix="${INSTALL_PREFIX_DIR}" --sysconfdir="${INSTALL_PREFIX_CONFIG_DIR}" &&
-		make --quiet) || exit $?
+		make) || exit $?
 
 	# 3. install
 	(cd "$GIT_CLONE_DIR" &&
-		sudo make --silent install &&
+		sudo make install &&
 		rm --recursive --force "$GIT_CLONE_DIR") || exit $?
 }
 
 function script_program_uninstall() {
-	(rm --verbose --recursive --force "${INSTALL_PREFIX_DIR}/bin/${EXECUTABLE_NAME:?}" &&
-		rm --verbose --recursive --force "${INSTALL_PREFIX_DIR}/share/${EXECUTABLE_NAME:?}" &&
-		rm --verbose --recursive --force "${INSTALL_PREFIX_CONFIG_DIR}/${EXECUTABLE_NAME:?}") || exit $?
+	(sudo rm --verbose --recursive --force "${INSTALL_PREFIX_DIR}/bin/${EXECUTABLE_NAME:?}" &&
+		sudo rm --verbose --recursive --force "${INSTALL_PREFIX_DIR}/share/${EXECUTABLE_NAME:?}" &&
+		sudo rm --verbose --recursive --force "${INSTALL_PREFIX_CONFIG_DIR}/${EXECUTABLE_NAME:?}") || exit $?
 }
 
 source "scripts/ext/program_menu.bash"
