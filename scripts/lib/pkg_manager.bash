@@ -5,6 +5,15 @@ source "scripts/lib/array.bash"
 source "scripts/lib/log.bash"
 source "scripts/lib/http.bash"
 
+declare -A ___PKG_MANAGER_CALL_PREFIXES=(
+	["apt"]="sudo "
+	["dnf"]="sudo "
+	["apk"]="sudo "
+	["xbps"]="sudo "
+	["pacman"]="sudo "
+)
+declare ___PKG_MANAGER_CALL_PREFIX=""
+
 declare -A ___PKG_MANAGER_OS_TO_PKG_MANAGERS=(
 	["debian"]="apt"
 	["ubuntu"]="apt"
@@ -89,7 +98,7 @@ function pkg_manager_install() {
 	local -r direct_packages="${packages[*]}"
 	local IFS='&'
 	for cmd in $install_cmds; do
-		if (eval "sudo $cmd $direct_packages"); then
+		if (eval "$cmd $direct_packages"); then
 			success=0
 			break
 		fi
@@ -133,8 +142,9 @@ function pkg_manager_echo_managers_install() {
 	local -r pkg_managers="$(pkg_manager_echo_os_pkg_managers)"
 	for pkg_manager in $pkg_managers; do
 		local install_cmd="${___PKG_MANAGER_TO_INSTALL_CMD["$pkg_manager"]}"
+		local call_prefix="${___PKG_MANAGER_CALL_PREFIXES["$pkg_manager"]}"
 		if [ -n "$install_cmd" ]; then
-			install_cmds_array+=("${pkg_manager}${install_cmd}")
+			install_cmds_array+=("${call_prefix}${pkg_manager}${install_cmd}")
 		fi
 	done
 	if [ "${#install_cmds_array[@]}" == 0 ]; then
