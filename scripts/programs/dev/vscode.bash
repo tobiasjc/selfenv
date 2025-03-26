@@ -9,7 +9,6 @@ declare -r LAZYGIT_PROGRAM_NAME="vscode"
 declare -rA VSCODE_PACKAGES_BY_OS_ID=(
 	["debian"]="code"
 	["ubuntu"]="code"
-	["rhel"]="code"
 	["fedora"]="code"
 	["alpine"]="code"
 	["void"]="vscode"
@@ -19,7 +18,6 @@ declare -rA VSCODE_PACKAGES_BY_OS_ID=(
 declare -rA VSCODE_REPOSITORY_FILENAME_BY_OS_ID=(
 	["debian"]="vscode.list"
 	["ubuntu"]="vscode.list"
-	["rhel"]="vscode.repo"
 	["fedora"]="vscode.repo"
 )
 
@@ -48,7 +46,7 @@ function script_program_install() {
 		pkg_manager_add_repo "$LAZYGIT_PROGRAM_NAME" "$repository_filename" "$repository_url" "$signing_key_filename" "$flags"
 		pkg_manager_install "${VSCODE_PACKAGES_BY_OS_ID[$os_id]}" || exit $?
 		;;
-	rhen | fedora)
+	fedora)
 		local -ra dependency_packages=("gnupg")
 
 		local -r repository_url="https://packages.microsoft.com/yumrepos/vscode"
@@ -65,7 +63,7 @@ function script_program_uninstall() {
 	local -r os_id="$(os_echo_id)"
 
 	case "$os_id" in
-	arch | void | alpine | debian | ubuntu | rhel | fedora)
+	arch | void | alpine | debian | ubuntu | fedora)
 		pkg_manager_uninstall "${VSCODE_PACKAGES_BY_OS_ID[$os_id]}"
 		pkg_manager_remove_repo "${VSCODE_REPOSITORY_FILENAME_BY_OS_ID[$os_id]}"
 

@@ -2,7 +2,7 @@
 
 source "scripts/lib/log.bash"
 
-function md5_check_hash_file() {
+function checksum_md5_file() {
 	local -r filepath="$1"
 	local -r hash_filepath="$2"
 

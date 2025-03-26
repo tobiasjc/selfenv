@@ -1,11 +1,3 @@
-# My Environment
+# Selfenv
 
-Supported systems:
-
-- Arch - main
-- Alpine
-- Void
-- Debian
-- Ubuntu
-- RHEL
-- Fedora
+For **me**, built by **myself**.

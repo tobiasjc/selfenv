@@ -20,7 +20,7 @@ declare -r GREX_DOWNLOAD_EXECUTABLE_FILEPATH="${GREX_DOWNLOAD_DIRPATH}/${GREX_EX
 function script_program_install() {
 	local -r os_id="$(os_echo_id)"
 	case "$os_id" in
-	arch | void | alpine | debian | ubuntu | rhel | fedora)
+	arch | void | alpine | debian | ubuntu | fedora)
 		local -r version_tag="$(git_echo_latest_tag "$GREX_REPOSITORY_URL")"
 		local -r architecture="$(os_echo_machine_architecture)"
 		local -r kernel_name="$(os_echo_kernel_name)"
@@ -40,7 +40,7 @@ function script_program_install() {
 function script_program_uninstall() {
 	local -r os_id="$(os_echo_id)"
 	case "$os_id" in
-	arch | void | alpine | debian | ubuntu | rhel | fedora)
+	arch | void | alpine | debian | ubuntu | fedora)
 		sudo rm --verbose --recursive --force "$GREX_EXECUTABLE_FILEPATH"
 		;;
 	esac

@@ -6,7 +6,7 @@ source "scripts/lib/os.bash"
 function script_program_install() {
 	local -r os_id="$(os_echo_id)"
 	case "$os_id" in
-	arch | void | alpine | debian | ubuntu | rhel | fedora)
+	arch | void | alpine | debian | ubuntu | fedora)
 		pkg_manager_install "flatpak"
 		eval "flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo" || exit $?
 		;;
@@ -16,7 +16,7 @@ function script_program_install() {
 function script_program_uninstall() {
 	local -r os_id="$(os_echo_id)"
 	case "$os_id" in
-	arch | void | alpine | debian | ubuntu | rhel | fedora)
+	arch | void | alpine | debian | ubuntu | fedora)
 		pkg_manager_uninstall "flatpak"
 		;;
 	esac

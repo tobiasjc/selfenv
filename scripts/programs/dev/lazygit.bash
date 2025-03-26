@@ -3,9 +3,9 @@
 source "scripts/lib/git.bash"
 source "scripts/lib/http.bash"
 source "scripts/lib/os.bash"
+source "scripts/lib/installer.bash"
 
 declare -r LAZYGIT_PROGRAM_NAME="lazygit"
-declare -r LAZYGIT_EXECUTABLE_PATH="/usr/bin/${LAZYGIT_PROGRAM_NAME}"
 declare -r LAZYGIT_REPOSITORY_URL="https://github.com/jesseduffield/lazygit"
 declare -r LAZYGIT_RESOURCE_DOWNLOAD_URL="https://github.com/jesseduffield/lazygit/releases/download/@{{version_tag}}/lazygit_@{{version}}_@{{kernel}}_@{{architecture}}.tar.gz"
 
@@ -31,19 +31,19 @@ function script_program_install() {
 	echo "url = $url"
 
 	# 3. download
-	output_dir="/tmp"
+	output_dir="/tmp/lazygit"
 	download_filename="${LAZYGIT_PROGRAM_NAME}.tar.gz"
 	http_download "$url" "$output_dir" "$download_filename"
 
 	# 4. install
 	archive_path="${output_dir}/${download_filename}"
 	(tar --verbose --extract --file="${archive_path}" --directory="$output_dir" --overwrite "${LAZYGIT_PROGRAM_NAME}" &&
-		sudo mv "${output_dir}/${LAZYGIT_PROGRAM_NAME}" "${LAZYGIT_EXECUTABLE_PATH}" &&
-		sudo rm --verbose --recursive --force "${archive_path}") || exit $?
+		installer_install_global_bin "${output_dir}/${LAZYGIT_PROGRAM_NAME}") || exit $?
+	rm --verbose --recursive --force "$output_dir"
 }
 
 function script_program_uninstall() {
-	sudo rm --verbose --recursive --force "${LAZYGIT_EXECUTABLE_PATH}" || exit $?
+	installer_uninstall_global_bin "$LAZYGIT_PROGRAM_NAME"
 }
 
 source "scripts/ext/program_menu.bash"

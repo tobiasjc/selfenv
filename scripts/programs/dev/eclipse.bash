@@ -4,31 +4,34 @@ source "scripts/lib/pkg_manager.bash"
 source "scripts/lib/os.bash"
 source "scripts/lib/http.bash"
 source "scripts/lib/file.bash"
-source "scripts/lib/md5.bash"
+source "scripts/lib/checksum.bash"
+source "scripts/lib/installer.bash"
 
 declare -r ECLIPSE_PROGRAM_NAME="eclipse"
 declare -r ECLIPSE_RELEASES_PAGE_URL="https://www.eclipse.org/downloads/packages/release"
 declare -r ECLIPSE_RELEASES_SELECTOR="section#block-system-main div.block-content > ul > li.first"
 
+declare -rai ECLIPSE_ICON_SIZES=(16 24 32 48 64 128 256)
+declare -r ECLIPSE_ICON_NAME_PREFIX="eclipse"
 declare -r ECLIPSE_DESKTOP_FILENAME_PREFIX="epp.package"
 
 declare -r ECLIPSE_DOWNLOAD_OUTPUT_DIR="/tmp/${ECLIPSE_PROGRAM_NAME}"
 declare -r ECLIPSE_DOWNLOAD_RAW_URL="https://download.eclipse.org/technology/epp/downloads/release/@{{version}}/R/eclipse-@{{package}}-@{{version}}-R-linux-gtk-@{{architecture}}.tar.gz"
 
-declare -rA ECLIPSE_INSTALL_PACKAGE_TO_DESCRIPTION=(
-	["jee"]="Eclipse IDE for Enterprise Java and Web Developers"
-	["cpp"]="Eclipse IDE for C/C++ Developers"
-	["php"]="Eclipse IDE for PHP Developers"
-	["modeling"]="Eclipse Modeling Tools"
-)
+declare -ra ECLIPSE_PKGS=("jee" "cpp" "php" "modeling")
 
 declare -r ECLIPSE_INSTALL_DIR="${HOME}/.${ECLIPSE_PROGRAM_NAME}"
+
+function ___eclipse_install_dependencies() {
+	./run.bash --program htmlq --install
+}
 
 function script_program_install() {
 	local -r os_id="$(os_echo_id)"
 	case "$os_id" in
-	arch | void | alpine | debian | ubuntu | rhel | fedora)
-		(source "scripts/programs/qol/htmlq.bash" && script_program_install) || exit $?
+	arch | void | alpine | debian | ubuntu | fedora)
+		___eclipse_install_dependencies || exit $?
+
 		local -r version="$(wget --quiet --output-document=- "$ECLIPSE_RELEASES_PAGE_URL" |
 			htmlq --text "$ECLIPSE_RELEASES_SELECTOR" |
 			tr --delete '[:cntrl:]')"
@@ -38,12 +41,12 @@ function script_program_install() {
 			sed -e "s/@{{architecture}}/$architecture/g")"
 
 		(rm --verbose --recursive --force "$ECLIPSE_DOWNLOAD_OUTPUT_DIR") || exit $?
-		for package in "${!ECLIPSE_INSTALL_PACKAGE_TO_DESCRIPTION[@]}"; do
+		for package in "${ECLIPSE_PKGS[@]}"; do
 			# 1. download
 			local download_filename="${package}-${version}.tar.gz"
 			local download_filepath="${ECLIPSE_DOWNLOAD_OUTPUT_DIR}/${download_filename}"
-			local download_url="$(echo -n "$base_download_url" |
-				sed -e "s/@{{package}}/$package/g")"
+			local download_url
+			download_url="$(echo -n "$base_download_url" | sed -e "s/@{{package}}/$package/g")" || exit $?
 			http_download "$download_url" "$ECLIPSE_DOWNLOAD_OUTPUT_DIR" "$download_filename"
 
 			local download_md5_filename="${download_filename}.md5"
@@ -51,29 +54,32 @@ function script_program_install() {
 			local download_md5_filepath="${ECLIPSE_DOWNLOAD_OUTPUT_DIR}/${download_md5_filename}"
 			http_download "$download_md5_url" "$ECLIPSE_DOWNLOAD_OUTPUT_DIR" "$download_md5_filename"
 
-			# 2. checksum md5
-			(md5_check_hash_file "$download_filepath" "$download_md5_filepath") || exit $?
+			# 2. checksum
+			(checksum_md5_file "$download_filepath" "$download_md5_filepath") || exit $?
 
-			# 3. install
+			# 3. install bin
 			local download_filepath="${ECLIPSE_DOWNLOAD_OUTPUT_DIR}/${download_filename}"
 			local install_path="${ECLIPSE_INSTALL_DIR}/${package}-${version}"
+			local install_bin_name="${ECLIPSE_PROGRAM_NAME}-${package}"
 			(tar --verbose --extract --directory="$ECLIPSE_DOWNLOAD_OUTPUT_DIR" --file="$download_filepath" &&
 				mkdir --verbose --parents "${ECLIPSE_INSTALL_DIR}" &&
 				rm --verbose --recursive --force "$install_path" &&
-				mv --verbose --force "${ECLIPSE_DOWNLOAD_OUTPUT_DIR}/${ECLIPSE_PROGRAM_NAME}" "${install_path}") || exit $?
+				mv --verbose --force "${ECLIPSE_DOWNLOAD_OUTPUT_DIR}/${ECLIPSE_PROGRAM_NAME}" "$install_path" &&
+				installer_install_local_link_bin "${install_path}/${ECLIPSE_PROGRAM_NAME}" "$install_bin_name") || exit $?
 
-			# 4. create desktop entry
-			local description="${ECLIPSE_INSTALL_PACKAGE_TO_DESCRIPTION[${package}]}"
-			local exec_path="${install_path}/${ECLIPSE_PROGRAM_NAME}"
-			local icon_path="${install_path}/icon.xpm"
-			local desktop_file_content
-			desktop_file_content="$(sed -e "s|@{{name}}|${ECLIPSE_PROGRAM_NAME}-${package}|g" "resources/application-eclipse.desktop" |
-				sed -e "s|@{{comment}}|${description}|g" |
-				sed -e "s|@{{icon_path}}|${icon_path}|g" |
-				sed -e "s|@{{exec_path}}|${exec_path}|g")"
+			# 4. install icons
+			local icon_name="${ECLIPSE_ICON_NAME_PREFIX}-${package}"
+			local icon_extension="xpm"
+			for icon_size in "${ECLIPSE_ICON_SIZES[@]}"; do
+				installer_install_link_icon_local "${install_path}/icon.xpm" "${icon_name}.${icon_extension}" "$icon_size"
+			done
 
-			local desktop_filename="${ECLIPSE_DESKTOP_FILENAME_PREFIX}.${package}.desktop"
-			file_application_local_install "$desktop_filename" "$desktop_file_content"
+			# 4. install desktop entry
+			installer_install_desktop_file_local "${ECLIPSE_DESKTOP_FILENAME_PREFIX}.${package}" --set-name="${ECLIPSE_PROGRAM_NAME}-${package}" \
+				--set-key="Type" --set-value="Application" \
+				--set-key="Exec" --set-value="${install_bin_name} %u" \
+				--set-icon="${icon_name}" \
+				--add-category="Development" --add-category="IDE" --add-category="X-Eclipse"
 		done
 		rm --verbose --recursive --force "$ECLIPSE_DOWNLOAD_OUTPUT_DIR"
 		;;
@@ -83,12 +89,17 @@ function script_program_install() {
 function script_program_uninstall() {
 	local -r os_id="$(os_echo_id)"
 	case "$os_id" in
-	arch | void | alpine | debian | ubuntu | rhel | fedora)
-		for package in "${!ECLIPSE_INSTALL_PACKAGE_TO_DESCRIPTION[@]}"; do
-			local desktop_filename="${ECLIPSE_DESKTOP_FILENAME_PREFIX}.${package}.desktop"
+	arch | void | alpine | debian | ubuntu | fedora)
+		for package in "${ECLIPSE_PKGS[@]}"; do
+			installer_uninstall_local_bin "${ECLIPSE_PROGRAM_NAME}-${package}"
+			for icon_size in "${ECLIPSE_ICON_SIZES[@]}"; do
+				installer_uninstall_icon_local "${ECLIPSE_ICON_NAME_PREFIX}-${package}.xpm" "$icon_size"
+			done
+
 			(rm --verbose --recursive --force "${ECLIPSE_INSTALL_DIR:?}/${package:?}"* &&
-				file_application_local_uninstall "$desktop_filename") || continue
+				installer_uninstall_desktop_file_local "${ECLIPSE_DESKTOP_FILENAME_PREFIX}.${package}.desktop") || exit $?
 		done
+		(rm --verbose --recursive --force "${ECLIPSE_INSTALL_DIR}") || exit $?
 		;;
 	esac
 }

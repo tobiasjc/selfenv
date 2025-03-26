@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 
+source "scripts/lib/log.bash"
+
 declare ___FILE_ENV_RESOURCES_DIRPATH="resources"
 
 declare ___FILE_CONFIG_DIRPATH="${HOME}/.config"
 declare ___FILE_BASH_D_DIRPATH="${HOME}/.bashrc.d"
+
+declare ___FILE_GLOBAL_MAN_DIRPATH="/usr/share/man/man1"
+declare ___FILE_GLOBAL_INSTALL_DIRPATH="/usr/bin"
+declare ___FILE_GLOBAL_BASH_COMPLETION_D_DIRPATH="/etc/bash_completion.d"
 
 declare ___FILE_LOCAL_APPLICATION_DIRPATH="${HOME}/.local/share/applications"
 declare ___FILE_GLOBAL_APPLICATION_DIRPATH="/usr/share/applications"
@@ -77,72 +83,8 @@ function file_verify_not_exists() {
 	fi
 
 	if [ "$force" != "true" ]; then
-		echo "ERROR ~ [${FUNCNAME[0]}] ~ File at ${target_dir} already exists, and force deletion is false!"
-		exit 1
+		log_kill "File at ${target_dir} already exists, and force deletion is false!"
 	fi
 
-	rm --verbose --recursive --force "$target_dir" || exit $?
-}
-
-function ___file_install() {
-	local -r from="$1"
-	local -r to="$2"
-
-	(cp --verbose --recursive --force "$from" "$to") || exit $?
-}
-
-function file_application_local_install() {
-	local -r name="$1"
-	local -r string="$2"
-
-	(file_write "${___FILE_LOCAL_APPLICATION_DIRPATH}/${name}" "$string" &&
-		sudo update-desktop-database) || exit $?
-}
-
-function file_application_local_uninstall() {
-	local -r name="$1"
-
-	(rm --verbose --recursive --force "${___FILE_LOCAL_APPLICATION_DIRPATH:?}/${name}" &&
-		sudo update-desktop-database) || exit $?
-}
-
-function file_application_global_install() {
-	local -r name="$1"
-	local -r string="$2"
-
-	(file_write "${___FILE_GLOBAL_APPLICATION_DIRPATH}/${name}" "$string" "true" "true" &&
-		sudo update-desktop-database) || exit $?
-}
-
-function file_application_global_uninstall() {
-	local -r name="$1"
-
-	(sudo rm --verbose --recursive --force "${___FILE_LOCAL_APPLICATION_DIRPATH:?}/${name}" &&
-		sudo update-desktop-database) || exit $?
-}
-
-function file_config_resource_install() {
-	local -r name="$1"
-	local -r to="${2:-${name}}"
-
-	(mkdir --parents "${___FILE_CONFIG_DIRPATH}" &&
-		cp --verbose --recursive --force "${___FILE_ENV_RESOURCES_DIRPATH}/${name}" "${___FILE_CONFIG_DIRPATH}/${to}") || exit $?
-}
-
-function file_config_resource_uninstall() {
-	local -r name="$1"
-	(rm --verbose --recursive --force "${___FILE_CONFIG_DIRPATH:?}/${name}") || exit $?
-}
-
-function file_bashrc_d_resource_install() {
-	local -r name="$1"
-	local -r to="${2:-${name}}"
-
-	(mkdir --parents "${___FILE_BASH_D_DIRPATH}" &&
-		cp --verbose --recursive --force "${___FILE_ENV_RESOURCES_DIRPATH}/${name}" "${___FILE_BASH_D_DIRPATH}/${to}") || exit $?
-}
-
-function file_bashrc_d_resource_uninstall() {
-	local -r name="$1"
-	(rm --verbose --recursive --force "${___FILE_BASH_D_DIRPATH:?}/${name}") || exit $?
+	(rm --verbose --recursive --force "$target_dir") || exit $?
 }

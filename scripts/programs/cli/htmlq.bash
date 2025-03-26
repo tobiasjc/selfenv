@@ -22,7 +22,7 @@ function script_program_install() {
 	arch | alpine)
 		pkg_manager_install "${HTMLQ_PACKAGES_BY_OS_ID[$os_id]}"
 		;;
-	debian | ubuntu | rhel | fedora)
+	debian | ubuntu | fedora)
 		local -r version_tag="$(git_echo_latest_tag "$HTMLQ_REPOSITORY_URL")"
 		local -r architecture="$(os_echo_machine_architecture)"
 		local -r kernel_name="$(os_echo_kernel_name)"
@@ -47,7 +47,7 @@ function script_program_uninstall() {
 	arch | alpine)
 		pkg_manager_uninstall "${HTMLQ_PACKAGES_BY_OS_ID[$os_id]}"
 		;;
-	debian | ubuntu | rhel | fedora)
+	debian | ubuntu | fedora)
 		(sudo rm --verbose --recursive --force "$HTMLQ_EXECUTABLE_FILEPATH") || exit $?
 		;;
 	esac

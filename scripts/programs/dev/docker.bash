@@ -11,7 +11,6 @@ declare -r DOCKER_COMMON_PACKAGES=("docker" "docker-buildx" "docker-compose")
 declare -rA DOCKER_REPOSITORY_FILENAME_BY_OS_ID=(
 	["debian"]="docker.list"
 	["ubuntu"]="docker.list"
-	["rhel"]="docker.repo"
 	["fedora"]="docker.repo"
 )
 
@@ -43,7 +42,7 @@ function script_program_install() {
 		pkg_manager_install "${DOCKER_CE_PACKAGES[@]}"
 		script_program_post_install
 		;;
-	rhel | fedora)
+	fedora)
 		local -r kernel_name="$(os_echo_kernel_name)"
 		local -r version_id="$(os_query_release_file "VERSION_ID")"
 		local -r machine_architecture="$(os_echo_machine_architecture)"
@@ -73,7 +72,7 @@ function script_program_uninstall() {
 	arch | void | alpine)
 		pkg_manager_uninstall "${DOCKER_COMMON_PACKAGES[@]}"
 		;;
-	debian | ubuntu | rhel | fedora)
+	debian | ubuntu | fedora)
 		pkg_manager_uninstall "${DOCKER_CE_PACKAGES[@]}"
 		pkg_manager_remove_repo "${DOCKER_REPOSITORY_FILENAME_BY_OS_ID[$os_id]}"
 

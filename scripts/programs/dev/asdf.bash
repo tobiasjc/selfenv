@@ -2,39 +2,32 @@
 
 source "scripts/lib/git.bash"
 source "scripts/lib/http.bash"
-source "scripts/lib/file.bash"
 source "scripts/lib/pkg_manager.bash"
-source "scripts/lib/md5.bash"
+source "scripts/lib/checksum.bash"
+source "scripts/lib/installer.bash"
 
-declare -r ASDF_PROGRAM_NAME="asdf"
-declare -r ASDF_INSTALL_DIRPATH="/usr/bin"
-declare -r ASDF_EXECUTABLE_FILEPATH="${ASDF_INSTALL_DIRPATH}/${ASDF_PROGRAM_NAME}"
+declare -r ASDF_BIN_NAME="asdf"
+
+declare -r ASDF_BASHRC_D_RESOURCE_NAME="asdf.bash"
+declare -r ASDF_BASHRC_COMPLETION_NAME="asdf.bash"
+
+declare -ra ASDF_PKG_NAME_BY_OS_ID=(
+	["arch"]="asdf-vm"
+	["alpine"]="asdf-vm"
+)
 
 declare -r ASDF_REPOSITORY_URL="https://github.com/asdf-vm/asdf"
 declare -r ASDF_RAW_DOWNLOAD_URL="https://github.com/asdf-vm/asdf/releases/download/@{{tag}}/asdf-@{{tag}}-@{{kernel_name}}-@{{machine_architecture}}.tar.gz"
 
-declare -r ASDF_DOWNLOAD_DIRPATH="/tmp/asdf"
-
-declare -r ASDF_DOWNLOAD_FILENAME="asdf.tar.gz"
-declare -r ASDF_DOWNLOAD_FILEPATH="${ASDF_DOWNLOAD_DIRPATH}/${ASDF_DOWNLOAD_FILENAME}"
-declare -r ASDF_MD5_DOWNLOAD_FILENAME="asdf.tar.gz.md5"
-declare -r ASDF_MD5_DOWNLOAD_FILEPATH="${ASDF_DOWNLOAD_DIRPATH}/${ASDF_MD5_DOWNLOAD_FILENAME}"
-
-declare -r ASDF_BASH_COMPLETION_DIRPATH="/etc/bash_completion.d"
-declare -r ASDF_BASH_COMPLETION_FILENAME="asdf.bash"
-declare -r ASDF_BASH_COMPLETION_FILEPATH="${ASDF_BASH_COMPLETION_DIRPATH}/${ASDF_BASH_COMPLETION_FILENAME}"
-
-declare -r ASDF_BASHRC_D_RESOURCE_NAME="asdf.bash"
-
 function script_program_install() {
 	local -r os_id="$(os_echo_id)"
 	case "$os_id" in
-	arch)
-		(pkg_manager_install "asdf-vm" &&
-			pkg_manager_install "bash-completion" &&
+	arch | alpine)
+		(pkg_manager_install "${ASDF_PKG_NAME_BY_OS_ID[$os_id]}" &&
 			asdf_install_env) || exit $?
 		;;
-	alpine | void | debian | ubuntu | rhel | fedora)
+	void | debian | ubuntu | fedora)
+		# 1 download
 		local -r tag="$(git_echo_latest_tag "$ASDF_REPOSITORY_URL")"
 		local -r machine_architecture="$(os_echo_machine_architecture)"
 		local -r machine_architecture_amd="$(os_echo_architecture_to_amd "$machine_architecture")"
@@ -45,14 +38,28 @@ function script_program_install() {
 			sed -e "s/@{{machine_architecture}}/$machine_architecture_amd/g")"
 		local -r asdf_md5_checksum_download_url="${asdf_download_url}.md5"
 
-		(http_download "$asdf_download_url" "$ASDF_DOWNLOAD_DIRPATH" "$ASDF_DOWNLOAD_FILENAME" &&
-			http_download "$asdf_md5_checksum_download_url" "$ASDF_DOWNLOAD_DIRPATH" "$ASDF_MD5_DOWNLOAD_FILENAME" &&
-			md5_check_hash_file "$ASDF_DOWNLOAD_FILEPATH" "$ASDF_MD5_DOWNLOAD_FILEPATH") || exit $?
+		local -r download_dirpath="/tmp/asdf"
+		local -r download_filename="asdf.tar.gz"
+		local -r download_filepath="${download_dirpath}/${download_filename}"
 
-		(tar --verbose --extract --directory="$ASDF_DOWNLOAD_DIRPATH" --file="$ASDF_DOWNLOAD_FILEPATH" &&
-			sudo install --verbose "${ASDF_DOWNLOAD_DIRPATH}/${ASDF_PROGRAM_NAME}" "$ASDF_INSTALL_DIRPATH" &&
-			rm --recursive --force "$ASDF_DOWNLOAD_DIRPATH" &&
-			asdf_install_env) || exit $?
+		local -r md5_download_filename="asdf.tar.gz.md5"
+		local -r md5_download_filepath="${download_dirpath}/${md5_download_filename}"
+
+		(http_download "$asdf_download_url" "$download_dirpath" "$download_filename" &&
+			http_download "$asdf_md5_checksum_download_url" "$download_dirpath" "$md5_download_filename" &&
+			checksum_md5_file "$download_filepath" "$md5_download_filepath") || exit $?
+
+		# 2. install
+		(
+			tar --verbose --extract --directory="$download_dirpath" --file="$download_filepath" &&
+				installer_install_global_bin "${download_dirpath}/${ASDF_BIN_NAME}" &&
+				installer_install_bashrc_d_resource "$ASDF_BASHRC_D_RESOURCE_NAME"
+			installer_install_command_completion "$ASDF_BASHRC_COMPLETION_NAME" "asdf completion bash"
+			asdf_install_env
+		) || exit $?
+
+		# 3. clean
+		(rm --verbose --recursive --force "$download_dirpath") || exit $?
 		;;
 	esac
 }
@@ -61,24 +68,24 @@ function script_program_uninstall() {
 	local -r os_id="$(os_echo_id)"
 	case "$os_id" in
 	arch)
-		(pkg_manager_uninstall "asdf-vm" &&
-			asdf_uninstall_env) || exit $?
+		pkg_manager_uninstall "${ASDF_PKG_NAME_BY_OS_ID[$os_id]}"
+		asdf_uninstall_env
 		;;
-	alpine | void | debian | ubuntu | rhel | fedora)
-		(sudo rm --verbose --recursive --force "$ASDF_EXECUTABLE_FILEPATH" &&
-			asdf_uninstall_env) || exit $?
+	alpine | void | debian | ubuntu | fedora)
+		installer_uninstall_global_bin "$ASDF_BIN_NAME"
+		asdf_uninstall_env
 		;;
 	esac
 }
 
 function asdf_install_env() {
-	(file_bashrc_d_resource_install "$ASDF_BASHRC_D_RESOURCE_NAME" &&
-		asdf completion bash | sudo tee "$ASDF_BASH_COMPLETION_FILEPATH") || exit $?
+	installer_install_bashrc_d_resource "$ASDF_BASHRC_D_RESOURCE_NAME"
+	installer_install_command_completion "$ASDF_BASHRC_COMPLETION_NAME" "asdf completion bash"
 }
 
 function asdf_uninstall_env() {
-	(file_bashrc_d_resource_uninstall "$ASDF_BASHRC_D_RESOURCE_NAME" &&
-		sudo rm --verbose --recursive --force "$ASDF_BASH_COMPLETION_FILEPATH") || exit $?
+	installer_uninstall_bashrc_d_resource "$ASDF_BASHRC_D_RESOURCE_NAME"
+	installer_uninstall_completion "$ASDF_BASHRC_COMPLETION_NAME"
 }
 
 source "scripts/ext/program_menu.bash"

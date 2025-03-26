@@ -6,12 +6,13 @@ function git_clone() {
 	local -r repo_url="$1"
 	local -r branch="$2"
 	local -r target_dir="$3"
-	local -r force="${4:-false}"
-	local -r sudo="${5:-false}"
+	local -r opts="$4"
+	local -r force="${5:-true}"
+	local -r sudo="${6:-false}"
 
 	file_verify_not_exists "$target_dir" "$force"
 
-	local cmd="git clone --quiet ${repo_url}"
+	local cmd="git clone --verbose ${opts} ${repo_url}"
 	if [ "$sudo" = "true" ]; then
 		cmd="sudo ${cmd}"
 	fi
@@ -38,7 +39,7 @@ function git_echo_all_tags() {
 
 function git_echo_latest_tag() {
 	local -r repo_url="$1"
-	local -r pattern="${2}"
+	local -r pattern="$2"
 
 	local latest_tag=""
 	local -r all_tags="$(git_echo_all_tags "$repo_url")"

@@ -22,7 +22,7 @@ function script_program_install() {
 	arch | alpine | void)
 		pkg_manager_install "${LNAV_EXECUTABLE_NAME}"
 		;;
-	debian | ubuntu | rhel | fedora)
+	debian | ubuntu | fedora)
 		local -r version_tag="$(git_echo_latest_tag "$LNAV_REPOSITORY_URL" "^v[0-9]+\.[0-9]+\.[0-9]+$")"
 		local -r kernel_name="$(os_echo_kernel_name)"
 		local -r architecture="$(os_echo_machine_architecture)"
@@ -52,7 +52,7 @@ function script_program_uninstall() {
 	arch | alpine | void)
 		pkg_manager_uninstall "${LNAV_EXECUTABLE_NAME}"
 		;;
-	debian | ubuntu | rhel | fedora)
+	debian | ubuntu | fedora)
 		(sudo rm --verbose --recursive --force "$LNAV_EXECUTABLE_FILEPATH" &&
 			sudo rm --verbose --recursive --force "$LNAV_MANUAL_FILEPATH") || exit $?
 		;;

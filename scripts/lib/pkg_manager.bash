@@ -17,7 +17,6 @@ declare ___PKG_MANAGER_CALL_PREFIX=""
 declare -A ___PKG_MANAGER_OS_TO_PKG_MANAGERS=(
 	["debian"]="apt"
 	["ubuntu"]="apt"
-	["rhel"]="dnf"
 	["fedora"]="dnf"
 	["alpine"]="apk"
 	["void"]="xbps"
@@ -68,7 +67,6 @@ declare ___PKG_MANAGER_UPDATE_CMDS=""
 declare -A ___PKG_MANAGER_REPOSITORY_DIRPATH_BY_OS_ID=(
 	["debian"]="/etc/apt/sources.list.d"
 	["ubuntu"]="/etc/apt/sources.list.d"
-	["rhel"]="/etc/yum.repos.d"
 	["fedora"]="/etc/yum.repos.d"
 )
 
@@ -327,7 +325,7 @@ function pkg_manager_add_repo() {
 		fi
 		file_model+="] $url${flags:+ ${flags}}"
 		;;
-	fedora | rhel)
+	fedora)
 		local file_model="[${name}]\nname=${name}\nbaseurl=${url}\nenabled=1"
 		if [ -n "$signing_key_ref" ]; then
 			file_model+="\ngpgcheck=1\ngpgkey=${signing_key_ref}"

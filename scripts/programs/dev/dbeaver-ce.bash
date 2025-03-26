@@ -10,7 +10,6 @@ declare -rA DBEAVER_PACKAGE_BY_OS_ID=(
 	["void"]="dbeaver"
 	["debian"]="dbeaver-ce"
 	["ubuntu"]="dbeaver-ce"
-	["rhel"]="dbeaver-ce"
 	["fedora"]="dbeaver-ce"
 )
 
@@ -41,7 +40,7 @@ function script_program_install() {
 		pkg_manager_add_repo "$repository_name" "$repository_filename" "$repository_url" "$signing_key_filename" "/"
 		pkg_manager_install "$repository_package_name"
 		;;
-	rhel | fedora)
+	fedora)
 		local -r version="$(git_echo_latest_tag "https://github.com/dbeaver/dbeaver" | sed -e "s/release_//")"
 
 		local -r raw_download_url="https://github.com/dbeaver/dbeaver/releases/download/@{{version}}/dbeaver-ce-@{{version}}-stable.@{{architecture}}.@{{extension}}"
@@ -67,7 +66,7 @@ function script_program_install() {
 function script_program_uninstall() {
 	local -r os_id="$(os_echo_id)"
 	case "$os_id" in
-	arch | void | debian | ubuntu | rhel | fedora)
+	arch | void | debian | ubuntu | fedora)
 		pkg_manager_uninstall "${DBEAVER_PACKAGE_BY_OS_ID[$os_id]}"
 
 		case "$os_id" in
