@@ -41,7 +41,7 @@ function script_program_install() {
 		pkg_manager_install "$repository_package_name"
 		;;
 	fedora)
-		local -r version="$(git_echo_latest_tag "https://github.com/dbeaver/dbeaver" | sed -e "s/release_//")"
+		local -r version="$(git_echo_latest_tag "https://github.com/dbeaver/dbeaver" '--sort=version:refname' '^[0-9]+\.[0-9]+\.[0-9]+$')"
 
 		local -r raw_download_url="https://github.com/dbeaver/dbeaver/releases/download/@{{version}}/dbeaver-ce-@{{version}}-stable.@{{architecture}}.@{{extension}}"
 		local -r machine_architecture="$(os_echo_machine_architecture)"

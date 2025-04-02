@@ -23,7 +23,7 @@ function http_download() {
 			if [ "$sudo" = "true" ]; then
 				cmd="sudo $cmd"
 			fi
-			(eval "$cmd") || exit $?
+			eval "$cmd" || exit $?
 			return 0
 		fi
 	done

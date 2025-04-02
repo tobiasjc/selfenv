@@ -60,8 +60,8 @@ function script_program_install() {
 
 function script_program_post_install() {
 	(sudo groupadd --force docker &&
-		sudo usermod --append --groups docker "$USER") || exit $?
-	(sudo systemctl enable docker &&
+		sudo usermod --append --groups docker "$USER" &&
+		sudo systemctl enable docker &&
 		sudo systemctl start docker) || exit $?
 }
 

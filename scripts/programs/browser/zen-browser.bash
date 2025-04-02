@@ -31,7 +31,7 @@ function script_program_install() {
 		;;
 	alpine | debian | ubuntu | fedora)
 		# 1. download
-		local -r version_tag="$(git_echo_latest_tag "$ZEN_BROWSER_GITHUB_URL" "^[0-9]+\.[0-9]+b$")"
+		local -r version_tag="$(git_echo_latest_tag "$ZEN_BROWSER_GITHUB_URL" '--sort=version:refname' '^[0-9]+\.[0-9]+b$')"
 		echo "$version_tag"
 		local -r machine_architecture="$(os_echo_machine_architecture)"
 		local -r kernel_name="$(os_echo_kernel_name)"
@@ -62,7 +62,7 @@ function script_program_install() {
 		local -r git_repo_clone_dirpath="/tmp/zen-browser-repo"
 		git_clone "$ZEN_BROWSER_GITHUB_URL" "$version_tag" "$git_repo_clone_dirpath" "--depth=1"
 
-		installer_install_desktop_file_global_from_filepath "${git_repo_clone_dirpath}/AppDir/${ZEN_BROWSER_DESKTOP_FILENAME}" \
+		installer_install_desktop_file_from_filepath_global "${git_repo_clone_dirpath}/AppDir/${ZEN_BROWSER_DESKTOP_FILENAME}" \
 			--set-name="Zen Browser" \
 			--set-key="Exec" --set-value="/usr/bin/${ZEN_BROwSER_BIN_NAME} %u" \
 			--set-icon="$ZEN_BROWSER_ICON_NAME" \
@@ -82,7 +82,7 @@ function script_program_uninstall() {
 		;;
 	alpine | debian | ubuntu | fedora)
 		(sudo rm --verbose --recursive --force "${ZEN_BROWSER_INSTALL_DIRPATH}") || exit $?
-		installer_uninstall_global_bin "$ZEN_BROwSER_BIN_NAME"
+		installer_uninstall_bin_global "$ZEN_BROwSER_BIN_NAME"
 		for size in "${ZEN_BROWSER_ICON_SIZES[@]}"; do
 			installer_uninstall_icon_global "${ZEN_BROWSER_ICON_NAME}.${ZEN_BROWSER_ICON_EXTENSION}" "$size"
 		done

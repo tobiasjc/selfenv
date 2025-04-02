@@ -7,7 +7,7 @@ function system_arch_base_system() {
 	local -ra files=("zip" "unzip" "bzip2" "tar")
 	local -ra free_desktop=("xdg-utils" "xdg-user-dirs" "xkeyboard-config" "desktop-file-utils")
 
-	(sudo pacman --needed --noconfirm -Sy "${security[@]}" "${build[@]}" "${net[@]}" "${files[@]}" "${free_desktop[@]}") || exit $?
+	sudo pacman --needed --noconfirm --sync --refresh "${security[@]}" "${build[@]}" "${net[@]}" "${files[@]}" "${free_desktop[@]}" || exit $?
 }
 
 function system_arch_aur_helper() {
@@ -27,7 +27,7 @@ function system_arch_aur_helper() {
 
 function system_arch_qol() {
 	local -ra packages=("bash-completion" "man" "man-pages" "man-db")
-	(sudo pacman --needed --noconfirm -Sy "${packages[@]}" &&
+	(sudo pacman --needed --noconfirm --sync --refresh "${packages[@]}" &&
 		sudo mandb -c) || exit $?
 }
 
@@ -36,7 +36,7 @@ function system_arch_desktop_environment() {
 	case "$desktop_environment" in
 	xfce | xfce4)
 		local -ra packages=("xfce4-goodies")
-		(sudo pacman --needed --noconfirm -Sy "${packages[@]}") || exit $?
+		sudo pacman --needed --noconfirm --sync --refresh "${packages[@]}" || exit $?
 		;;
 	gnome) ;;
 	kde) ;;
@@ -44,11 +44,11 @@ function system_arch_desktop_environment() {
 }
 
 function run() {
-	(sudo pacman --needed --noconfirm -Syu) || exit $?
+	sudo pacman --needed --noconfirm --sync --refresh --sysupgrade || exit $?
 
 	system_arch_base_system
-	system_arch_aur_helper
 	system_arch_desktop_environment
+	system_arch_aur_helper
 	system_arch_qol
 }
 

@@ -33,7 +33,7 @@ function script_program_install() {
 	local -r os_id="$(os_echo_id)"
 	case "$os_id" in
 	arch | void | alpine | debian | ubuntu | fedora)
-		local -r version_tag="$(git_echo_latest_tag "$NERD_FONTS_REPOSITORY_URL")"
+		local -r version_tag="$(git_echo_latest_tag "$NERD_FONTS_REPOSITORY_URL" '--sort=version:refname' '^v[0-9]+\.[0-9]+\.[0-9]+$')"
 
 		local -r versioned_url="${NERD_FONTS_DOWNLOAD_RAW_URL//\@\{\{version_tag\}\}/${version_tag}}"
 		echo "$versioned_url"

@@ -24,12 +24,14 @@ function git_clone() {
 	fi
 	cmd+=" ${target_dir}"
 
-	(eval "$cmd") || exit $?
+	eval "$cmd" || exit $?
 }
 
 function git_echo_all_tags() {
 	local -r repo_url="$1"
-	local -r all_tags="$(git ls-remote --tags --no-refs --no-server-option --no-upload-pack --sort='version:refname' "$repo_url" |
+	local -r opts="$2"
+
+	local -r all_tags="$(git ls-remote --tags --refs --no-upload-pack "$opts" "$repo_url" |
 		cut -f2 |
 		sed -e 's/refs\/tags\///g' |
 		sed -E 's/\^[{](.*?)[}]//g' |
@@ -39,10 +41,11 @@ function git_echo_all_tags() {
 
 function git_echo_latest_tag() {
 	local -r repo_url="$1"
-	local -r pattern="$2"
+	local -r opts="$2"
+	local -r pattern="$3"
 
 	local latest_tag=""
-	local -r all_tags="$(git_echo_all_tags "$repo_url")"
+	local -r all_tags="$(git_echo_all_tags "$repo_url" "$opts")"
 	if [ -n "$pattern" ]; then
 		for tag in $all_tags; do
 			if [[ "$tag" =~ $pattern ]]; then

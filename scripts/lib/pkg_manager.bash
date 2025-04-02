@@ -264,7 +264,7 @@ function pkg_manager_add_signing_key() {
 	sudo mkdir --parents --mode=0755 "${dirpath}"
 
 	local -r filepath="${dirpath}/${filename}"
-	(echo "$key" | sudo tee "$filepath") || exit $?
+	echo "$key" | sudo tee "$filepath" || exit $?
 }
 
 function pkg_manager_remove_signing_key() {
@@ -277,7 +277,7 @@ function pkg_manager_remove_signing_key() {
 	fi
 
 	local -r filepath="${dirpath}/${filename}"
-	(sudo rm --verbose --recursive --force "$filepath") || exit $?
+	sudo rm --verbose --recursive --force "$filepath" || exit $?
 }
 
 function pkg_manager_remove_repo() {
@@ -290,7 +290,7 @@ function pkg_manager_remove_repo() {
 	fi
 
 	local -r fielpath="${dirpath}/${filename}"
-	(sudo rm --verbose --recursive --force "${fielpath}") || exit $?
+	sudo rm --verbose --recursive --force "${fielpath}" || exit $?
 }
 
 function pkg_manager_add_repo() {
@@ -334,5 +334,5 @@ function pkg_manager_add_repo() {
 		;;
 	esac
 
-	(echo -e "$file_model" | sudo tee "$filepath") || exit $?
+	echo -e "$file_model" | sudo tee "$filepath" || exit $?
 }

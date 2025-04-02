@@ -33,7 +33,7 @@ function file_write() {
 		cmd="sudo $cmd"
 	fi
 	cmd="echo -e \"${string}\" | $cmd"
-	(eval "$cmd") || exit $?
+	eval "$cmd" || exit $?
 }
 
 function file_append() {
@@ -55,13 +55,13 @@ function file_append() {
 		fi
 		mkdir_cmd=" mkdir --parents $(dirname "$filepath")"
 
-		(eval "$mkdir_cmd") || exit $?
-		(eval "$cmd") || exit $?
+		eval "$mkdir_cmd" || exit $?
+		eval "$cmd" || exit $?
 		return 0
 	fi
 
 	if [ "$unique" != "true" ]; then
-		(eval "$cmd") || exit $?
+		eval "$cmd" || exit $?
 		return 0
 	fi
 
@@ -71,7 +71,7 @@ function file_append() {
 		return 0
 	fi
 
-	(eval "$cmd") || exit $?
+	eval "$cmd" || exit $?
 }
 
 function file_verify_not_exists() {
@@ -86,5 +86,5 @@ function file_verify_not_exists() {
 		log_kill "File at ${target_dir} already exists, and force deletion is false!"
 	fi
 
-	(rm --verbose --recursive --force "$target_dir") || exit $?
+	rm --verbose --recursive --force "$target_dir" || exit $?
 }

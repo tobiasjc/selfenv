@@ -14,10 +14,6 @@ while true; do
 		cmd="script_program_uninstall"
 		shift 1
 		;;
-	-v | --version)
-		cmd+=" $2"
-		shift 2
-		;;
 	*)
 		break
 		;;

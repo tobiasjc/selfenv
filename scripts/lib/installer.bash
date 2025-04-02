@@ -18,6 +18,9 @@ declare ___INSTALLER_LOCAL_INSTALL_DIRPATH="${HOME}/.local/bin"
 declare ___INSTALLER_LOCAL_APPLICATION_DIRPATH="${HOME}/.local/share/applications"
 declare ___INSTALLER_GLOBAL_APPLICATION_DIRPATH="/usr/share/applications"
 
+declare ___INSTALLER_LIB64_DIRPATH="/usr/lib64"
+declare ___INSTALLER_LIB32_DIRPATH="/usr/lib64"
+
 function installer_install_link_icon_global() {
 	local -r filepath="$1"
 	local -r link_name="$2"
@@ -29,8 +32,8 @@ function installer_install_link_icon_global() {
 
 	local -r type="${4:-apps}"
 	local -r target_dirpath="${___INSTALLER_ICONS_GLOBAL_DIRPATH}/${size}/${type}"
-	(sudo mkdir --verbose --parents "$target_dirpath") || exit $?
-	(sudo ln --verbose --force --symbolic "$filepath" "${target_dirpath}/${link_name}") || exit $?
+	sudo mkdir --verbose --parents "$target_dirpath" || exit $?
+	sudo ln --verbose --force --symbolic "$filepath" "${target_dirpath}/${link_name}" || exit $?
 }
 
 function installer_install_link_icon_local() {
@@ -44,8 +47,8 @@ function installer_install_link_icon_local() {
 
 	local -r type="${4:-apps}"
 	local -r target_dirpath="${___INSTALLER_ICONS_LOCAL_DIRPATH}/${size}/${type}"
-	(mkdir --verbose --parents "$target_dirpath") || exit $?
-	(ln --verbose --force --symbolic "$filepath" "${target_dirpath}/${link_name}") || exit $?
+	mkdir --verbose --parents "$target_dirpath" || exit $?
+	ln --verbose --force --symbolic "$filepath" "${target_dirpath}/${link_name}" || exit $?
 }
 
 function installer_install_icon_global() {
@@ -58,8 +61,8 @@ function installer_install_icon_global() {
 
 	local -r type="${4:-apps}"
 	local -r target_dirpath="${___INSTALLER_ICONS_GLOBAL_DIRPATH}/${size}/${type}"
-	(sudo mkdir --verbose --parents "$target_dirpath") || exit $?
-	(sudo cp --verbose "$filepath" "${target_dirpath}/${link_name}") || exit $?
+	sudo mkdir --verbose --parents "$target_dirpath" || exit $?
+	sudo cp --verbose "$filepath" "${target_dirpath}/${link_name}" || exit $?
 }
 
 function installer_install_icon_local() {
@@ -72,8 +75,8 @@ function installer_install_icon_local() {
 
 	local -r type="${4:-apps}"
 	local -r target_dirpath="${___INSTALLER_ICONS_LOCAL_DIRPATHGLOBAL_DIRPATH}/${size}/${type}"
-	(mkdir --verbose --parents "$target_dirpath") || exit $?
-	(cp --verbose "$filepath" "${target_dirpath}/${link_name}") || exit $?
+	mkdir --verbose --parents "$target_dirpath" || exit $?
+	cp --verbose "$filepath" "${target_dirpath}/${link_name}" || exit $?
 }
 
 function installer_uninstall_icon_global() {
@@ -86,7 +89,7 @@ function installer_uninstall_icon_global() {
 
 	local -r type="${3:-apps}"
 	local -r dirpath="${___INSTALLER_ICONS_GLOBAL_DIRPATH}/${size}/${type}"
-	(rm --verbose --force "${dirpath}/${name}") || exit $?
+	rm --verbose --force "${dirpath}/${name}" || exit $?
 }
 
 function installer_uninstall_icon_local() {
@@ -99,7 +102,7 @@ function installer_uninstall_icon_local() {
 
 	local -r type="${3:-apps}"
 	local -r dirpath="${___INSTALLER_ICONS_LOCAL_DIRPATH}/${size}/${type}"
-	(rm --verbose --force "${dirpath}/${name}") || exit $?
+	rm --verbose --force "${dirpath}/${name}" || exit $?
 }
 
 function installer_install_man1() {
@@ -114,41 +117,41 @@ function installer_uninstall_man1() {
 		sudo mandb) || exit $?
 }
 
-function installer_install_global_bin() {
+function installer_install_bin_global() {
 	local -r filepath="$1"
-	(sudo install --verbose "$filepath" "$___INSTALLER_GLOBAL_INSTALL_DIRPATH") || exit $?
+	sudo install --verbose "$filepath" "$___INSTALLER_GLOBAL_INSTALL_DIRPATH" || exit $?
 }
 
-function installer_install_local_bin() {
+function installer_install_bin_local() {
 	local -r filepath="$1"
-	(install --verbose "$filepath" "$___INSTALLER_LOCAL_INSTALL_DIRPATH") || exit $?
+	install --verbose "$filepath" "$___INSTALLER_LOCAL_INSTALL_DIRPATH" || exit $?
 }
 
-function installer_uninstall_global_bin() {
+function installer_uninstall_bin_global() {
 	local -r name="$1"
-	(sudo rm --verbose --force "${___INSTALLER_GLOBAL_INSTALL_DIRPATH}/${name}") || exit $?
+	sudo rm --verbose --force "${___INSTALLER_GLOBAL_INSTALL_DIRPATH}/${name}" || exit $?
 }
 
-function installer_uninstall_local_bin() {
+function installer_uninstall_bin_local() {
 	local -r name="$1"
-	(rm --verbose --force "${___INSTALLER_LOCAL_INSTALL_DIRPATH}/${name}") || exit $?
+	rm --verbose --force "${___INSTALLER_LOCAL_INSTALL_DIRPATH}/${name}" || exit $?
 }
 
 function installer_install_global_link_bin() {
 	local -r target="$1"
 	local -r name="$2"
-	(sudo ln --verbose --force --symbolic "$target" "${___INSTALLER_GLOBAL_INSTALL_DIRPATH}/${name}") || exit $?
+	sudo ln --verbose --force --symbolic "$target" "${___INSTALLER_GLOBAL_INSTALL_DIRPATH}/${name}" || exit $?
 }
 
-function installer_install_local_link_bin() {
+function installer_install_link_bin_local() {
 	local -r target="$1"
 	local -r name="$2"
-	(ln --verbose --force --symbolic "$target" "${___INSTALLER_LOCAL_INSTALL_DIRPATH}/${name}") || exit $?
+	ln --verbose --force --symbolic "$target" "${___INSTALLER_LOCAL_INSTALL_DIRPATH}/${name}" || exit $?
 }
 
 function installer_install_completion() {
 	local -r filepath="$1"
-	(sudo install --verbose "${filepath}" "${___INSTALLER_GLOBAL_BASH_COMPLETION_D_DIRPATH}") || exit $?
+	sudo install --verbose "${filepath}" "${___INSTALLER_GLOBAL_BASH_COMPLETION_D_DIRPATH}" || exit $?
 }
 
 function installer_install_command_completion() {
@@ -156,12 +159,12 @@ function installer_install_command_completion() {
 	local -r command="$2"
 
 	local -r filepath="${___INSTALLER_GLOBAL_BASH_COMPLETION_D_DIRPATH}/${name}"
-	(eval "$command" | sudo tee "$filepath") || exit $?
+	eval "$command" | sudo tee "$filepath" || exit $?
 }
 
 function installer_uninstall_completion() {
 	local -r name="$1"
-	(sudo rm --verbose --recursive --force "${___INSTALLER_GLOBAL_BASH_COMPLETION_D_DIRPATH:?}/${name}") || exit $?
+	sudo rm --verbose --recursive --force "${___INSTALLER_GLOBAL_BASH_COMPLETION_D_DIRPATH:?}/${name}" || exit $?
 }
 
 function installer_install_desktop_file_local() {
@@ -178,7 +181,7 @@ function installer_install_desktop_file_local() {
 		sudo update-desktop-database) || exit $?
 }
 
-function installer_install_desktop_file_local_from_filepath() {
+function installer_install_desktop_file_from_filepath_local() {
 	local filepath="${1:?}"
 	shift
 	local -ra opts=("$@")
@@ -212,7 +215,7 @@ function installer_install_desktop_file_global() {
 		sudo update-desktop-database) || exit $?
 }
 
-function installer_install_desktop_file_global_from_filepath() {
+function installer_install_desktop_file_from_filepath_global() {
 	local filepath="${1:?}"
 	shift
 	local -ra opts=("$@")
@@ -232,6 +235,14 @@ function installer_uninstall_desktop_file_global() {
 		sudo update-desktop-database) || exit $?
 }
 
+function installer_install_config() {
+	local -r path="$1"
+	local -r name="$2"
+
+	(mkdir --parents "${___INSTALLER_CONFIG_DIRPATH}/${name}" &&
+		cp --verbose --recursive --force "$path" "${___INSTALLER_CONFIG_DIRPATH}/${name}") || exit $?
+}
+
 function installer_install_config_resource() {
 	local -r name="$1"
 	local -r to="${2:-${name}}"
@@ -240,9 +251,9 @@ function installer_install_config_resource() {
 		cp --verbose --recursive --force "${___INSTALLER_ENV_RESOURCES_DIRPATH}/${name}" "${___INSTALLER_CONFIG_DIRPATH}/${to}") || exit $?
 }
 
-function installer_uninstall_config_resource() {
+function installer_uninstall_config() {
 	local -r name="$1"
-	(rm --verbose --recursive --force "${___INSTALLER_CONFIG_DIRPATH:?}/${name}") || exit $?
+	rm --verbose --recursive --force "${___INSTALLER_CONFIG_DIRPATH:?}/${name}" || exit $?
 }
 
 function installer_install_bashrc_d_resource() {
@@ -253,7 +264,31 @@ function installer_install_bashrc_d_resource() {
 		cp --verbose --recursive --force "${___INSTALLER_ENV_RESOURCES_DIRPATH}/${name}" "${___INSTALLER_BASH_D_DIRPATH}/${to}") || exit $?
 }
 
-function installer_uninstall_bashrc_d_resource() {
+function installer_uninstall_bashrc_d() {
 	local -r name="$1"
-	(rm --verbose --recursive --force "${___INSTALLER_BASH_D_DIRPATH:?}/${name}") || exit $?
+	rm --verbose --recursive --force "${___INSTALLER_BASH_D_DIRPATH:?}/${name}" || exit $?
+}
+
+function installer_install_lib64() {
+	local -r path="$1"
+	local -r name="$2"
+	(sudo mkdir --verbose --parents $___INSTALLER_LIB64_DIRPATH &&
+		sudo cp --verbose --recursive --force "$path" "${___INSTALLER_LIB64_DIRPATH}/${name}") || exit $?
+}
+
+function installer_uninstall_lib64() {
+	local -r name="$1"
+	sudo rm --verbose --recursive --force "${___INSTALLER_LIB64_DIRPATH}/${name}" || exit $?
+}
+
+function installer_install_lib32() {
+	local -r path="$1"
+	local -r name="$2"
+	(sudo mkdir --verbose --parents $___INSTALLER_LIB32_DIRPATH &&
+		sudo cp --verbose --recursive --force "$path" "${___INSTALLER_LIB32_DIRPATH}/${name}") || exit $?
+}
+
+function installer_uninstall_lib32() {
+	local -r name="$1"
+	sudo rm --verbose --recursive --force "${___INSTALLER_LIB32_DIRPATH}/${name}" || exit $?
 }
