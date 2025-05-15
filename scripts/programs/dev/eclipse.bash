@@ -14,18 +14,14 @@ declare -r ECLIPSE_DESKTOP_FILENAME_PREFIX="epp.package"
 declare -ra ECLIPSE_PKGS=("jee" "cpp" "php")
 declare -r ECLIPSE_INSTALL_DIR="${HOME}/.${ECLIPSE_PROGRAM_NAME}"
 
-function ___eclipse_install_dependencies() {
-	./run.bash --program htmlq --install
-}
-
 function script_program_install() {
 	local -r os_id="$(os_echo_id)"
 	case "$os_id" in
 	arch | void | alpine | debian | ubuntu | fedora)
-		___eclipse_install_dependencies
-
 		# 1. versioning
 		local -r version_page_url="https://www.eclipse.org/downloads/packages/release"
+
+		./run.bash --program htmlq --install
 		local -r version="$(wget --quiet --output-document=- "$version_page_url" |
 			htmlq --text "section#block-system-main div.block-content > ul > li.first" |
 			tr --delete '[:cntrl:]')"
